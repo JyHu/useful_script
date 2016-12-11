@@ -77,44 +77,46 @@ def remove_img(img):
     elif len(xcodeproj) > 0 and os.path.isfile(img):
         pth = xcodeproj + '/' + 'project.pbxproj'   # 工程文件
         with open(pth, 'r') as f:
-            lines = f.readlines()
-            i_name = img[img.rfind('/') + 1:]
-            lines = [line for line in f.readlines if line.find(i_name) != -1]
+            i_name = img[img.rfind('/') + 1:]   # 图片名字
             store_file(img)
-            replfile(pth, lines)
+            replfile(pth, [line for line in f.readlines() if line.find(i_name) == -1])  # 删除所有带有图片名字的行
 
+# 替换工程文件，不然会在项目中爆红。
+# 工程文件`project.pbxproj`地址
+# lines 工程文件的内容
 def replfile(fpth, lines):
     pth = fpth[:fpth.rfind('/')]
-    temp = pth + '/' +'___tmp_file'
+    temp = pth + '/' +'___tmp_file'  # 创建一个临时文件，保存修改后的工程文件
     with open(temp, 'a') as f:
         for line in lines: f.write(line)
-    os.remove(fpth)
-    shutil.move(temp, fpth)
+    os.remove(fpth)             # 删除原来的工程文件
+    shutil.move(temp, fpth)     # 使用新的工程文件替换原有的
 
+'''
+移除的无用图片，不删除，只是移动到一个缓存目录，并记录在日志文件
+img 要移动的图片
+'''
 def store_file(img):
-    try:
-        shutil.move(img, tempStorePath)
-        with open(tempStorePath + '/' + '__store_log.txt', 'a') as f:
+    try: shutil.move(img, tempStorePath)
+    except Exception as e: os.system('rm %s' % img)     #如果文件已经存在了，则删除他
+    with open(tempStorePath + '/' + '__store_log.txt', 'a') as f:   # 记录文件日志
             f.write(img)
             f.write('\n')
-    except Exception as e:
-        os.system('rm %s' % img)
     print('移除无用图片成功  %s' % img)
-
+'''
+自动批量移除所有无用图片
+imgs 要移除的图片数组
+'''
 def remove_imgs(imgs):
-    if len(xcodeproj) > 0:
+    if len(xcodeproj) > 0 and len(imgs) > 0:
         with open(xcodeproj + '/' + 'project.pbxproj', 'r') as f:
             lines = f.readlines()
             c_unuse_img = False
             for img in imgs:
-                store_file(img)
-                if img[img.rfind('.') + 1:] == 'imageset': continue
-                i_name = img[img.rfind('/') + 1:]
-                for line in lines:
-                    if line.find(i_name) != -1:
-                        lines.remove(line)
-                        c_unuse_img = True
-            if c_unuse_img: replfile(xcodeproj + '/' + 'project.pbxproj', lines)
+                store_file(img)     # 缓存图片
+                if img[img.rfind('.') + 1:] == 'imageset': continue     # 'imageset' 只需要删除本地文件即可，不需要清理工程文件
+                lines = [line for line in lines if line.find(img[img.rfind('/') + 1:]) == -1]
+            replfile(xcodeproj + '/' + 'project.pbxproj', lines)
 
 # 程序的入口，检查图片是否被使用
 # prj     项目地址
@@ -122,13 +124,20 @@ def remove_imgs(imgs):
 def imgCheck(prj, ept_f):
     if prj == None or len(prj) == 0 or not os.path.isdir(prj): return
 
+# ------------------------ 初始化一些参数
+
     global tempStorePath
     tempStorePath = prj + '/' + '__temp_store_path'
     if not os.path.isdir(tempStorePath): os.mkdir(tempStorePath)
 
+# ------------------------ 过滤归类文件
+
     imgs = []
     codes = []
     file_classify(prj, imgs, codes, ept_f)
+
+# ------------------------ 筛选无用图片
+
     unuse_imgs = []
     for t in range(len(imgs)):
         img = imgs[t]
@@ -140,6 +149,8 @@ def imgCheck(prj, ept_f):
         sys.stdout.write('\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b')
         sys.stdout.write('--->> 正在处理 %d/%d' % (t + 1, len(imgs)))
 
+# ------------------------ 处理无用图片及相关联内容
+
     if len(unuse_imgs) == 0:
         print('\n\n恭喜你，项目中没有无用的图片哦 ~ \n')
         return
@@ -149,25 +160,23 @@ def imgCheck(prj, ept_f):
     for im in unuse_imgs: print('未使用   : ', im)
 
     if len(unuse_imgs) > 0:
+        print('\n\n')
+        print('>>--------------------------------------------------------------')
+        print('>|')
+        print('>|    以上内容检查自代码文件中，仅供参考，请自行在项目中查找资源是否使用')
+        print('>|    项目中图片共有:%d张' % len(imgs))
+        print('>|    没有用过的图片有:%d张' % len(unuse_imgs))
+        print('>|')
+        print('>|')
+        print('>|    请选择操作方式：')
+        print('>|')
+        print('>|    888 - 全部清除')
+        print('>|    2   - 依次全部清除')
+        print('>|    其他 - 退出')
+        print('>|')
+        print('>>--------------------------------------------------------------')
+        print('\n')
 
-        print('''
-
->>--------------------------------------------------------------
->|
->|    以上内容检查自代码文件中，仅供参考，请自行在项目中查找资源是否使用
->|    项目中图片共有:%d张
->|    没有用过的图片有:%d张
->|
->|
->|    请选择操作方式：
->|
->|    888 - 全部清除
->|    2   - 依次全部清除
->|    其他 - 退出
->|
->>--------------------------------------------------------------
-
-            ''' % (len(imgs), len(unuse_imgs)))
         cmd = input('>> : ')
         if cmd == '888': remove_imgs(unuse_imgs)
         elif cmd == '2':
@@ -175,8 +184,7 @@ def imgCheck(prj, ept_f):
                 print('\n-------------------------------------------------------\n\n当前项：', cur_img)
                 cmd = input('-- > (y/Y删除)  : ')
                 if cmd == 'q': break
-                elif cmd == 'y' or cmd == 'Y':
-                    remove_img(cur_img)
+                elif cmd == 'y' or cmd == 'Y': remove_img(cur_img)
 
         if len(os.listdir(tempStorePath)) > 0:
             try:
@@ -191,9 +199,7 @@ def imgCheck(prj, ept_f):
                 os.system('open %s' % mv_path)
                 print('\n移动缓存文件夹成功')
             except Exception as e: print('移动失败 ', e)
-        else:
-            print('\n\n操作结束 ~ \n')
-
+        else: print('\n\n操作结束 ~ \n')
 
 if __name__ == '__main__':
     args = sys.argv
