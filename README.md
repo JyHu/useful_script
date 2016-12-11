@@ -14,7 +14,13 @@
 
 测试了几个项目，效果还不错。
 
-[查看详细说明](https://github.com/JyHu/useful_script/blob/master/Scripts/查找项目中废弃的图片/Note.md)
+**[查看详细说明](https://github.com/JyHu/useful_script/blob/master/Scripts/查找项目中废弃的图片/Note.md)**
+
+## [统计项目中代码的有效代码行数](https://github.com/JyHu/useful_script/tree/master/Scripts/统计项目中代码行数)
+
+用来统计项目中有效代码的行数，即除掉注释、空行以外的代码，可以自己选择过滤的文件类型还有需要过滤掉的文件夹。
+
+使用简单，**[详细请看这里>>>>](https://github.com/JyHu/useful_script/tree/master/Scripts/统计项目中代码行数/note.md)**
 
 ## [导出XCode中的Framework](https://github.com/JyHu/useful_script/tree/master/Scripts/XCode中Frameworks导出)
 

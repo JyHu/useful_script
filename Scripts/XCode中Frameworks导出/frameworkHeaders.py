@@ -1,5 +1,5 @@
 #coding:utf-8
-
+#auth:JyHu
 
 '''
 将XCode中的各个平台的SDK导出到目标目录，可以导出为markdown文件和头文件

@@ -1,4 +1,5 @@
 #coding:utf-8
+#auth:JyHu
 
 '''
 python3 查找项目中无用的图片。
@@ -12,6 +13,7 @@ import os
 import re
 import shutil
 import getpass
+import imghdr
 
 xcodeproj = ''
 tempStorePath = ''
@@ -40,19 +42,20 @@ def file_classify(c_path, imgs, codes, ecpt_f):
         f_loc = file.rfind('.')             # 在文件名中是否有 `.` ，用于截取
         f_name = file[:(f_loc if f_loc != -1 else len(file))]           # 文件名
         f_type = file[((f_loc + 1) if f_loc != -1 else len(file)):]     # 文件类型
-        if f_type in ('lproj', 'bundle', 'framework', 'xcworkspace', '.a') or f_name in ('Podfile', 'Pods', '__temp_store_path'):   # 这些文件、目录下的图片不做统计
+        if f_type in ('lproj', 'bundle', 'framework', 'xcworkspace', '.a') or f_name in ('Podfile', 'Pods', '__temp_store_path') or file in ecpt_f:   # 这些文件、目录下的图片不做统计
             continue
         if f_type == 'xcodeproj':
             global xcodeproj
             xcodeproj = tmp_path
         elif f_type == 'xcassets':        # 是系统的Assets，只需要统计里面的图片即可。
             imgs += assets_imgs(tmp_path)
-        elif os.path.isdir(tmp_path) and file not in ecpt_f:                 # 如果是一个目录，则递归去寻找
+        elif os.path.isdir(tmp_path):                 # 如果是一个目录，则递归去寻找
             file_classify(tmp_path, imgs, codes, ecpt_f)
-        elif f_type in ('png', 'jpg', 'jpeg', 'bmp', 'gif'):    # 如果是图片类型的，则直接添加
-            imgs.append(tmp_path)
         elif f_type in ('m', 'c', 'h', 'mm', 'strings', 'strings'):               # 代码文件也需要保存，去掉plist文件的读取
             codes.append(tmp_path)
+        elif imghdr.what(tmp_path):    # 如果是图片类型的，则直接添加
+            imgs.append(tmp_path)
+
 
 # 检查图片在代码中是否存在
 # img_path 图片地址
