@@ -21,10 +21,10 @@ def assets_imgs(a_path):
     ass = os.listdir(a_path)
     as_imgs = []    # 记录assets中的图片
     for asset in ass:
-        tmp_path = a_path + '/' + asset
-        if asset[asset.rfind('.') + 1:] == 'imageset': as_imgs.append(tmp_path)
-        elif asset[0:1] == '.': continue
-        elif os.path.isdir(tmp_path): as_imgs += assets_imgs(tmp_path)
+        tmp_path = a_path + '/' + asset         # 当前图片文档的地址
+        if asset[asset.rfind('.') + 1:] == 'imageset': as_imgs.append(tmp_path) # 如果是imageset直接添加
+        elif asset[0:1] == '.': continue                                        # 过滤掉隐藏目录
+        elif os.path.isdir(tmp_path): as_imgs += assets_imgs(tmp_path)          # 递归添加
     return as_imgs
 
 # 遍历图片还有文件
@@ -35,12 +35,11 @@ def assets_imgs(a_path):
 def file_classify(c_path, imgs, codes, ecpt_f):
     files = os.listdir(c_path)
     for file in files:
-        if file[0:1] == '.':                      # 如果是隐藏文件，则不管他
-            continue
-        tmp_path = c_path + '/' + file
-        f_loc = file.rfind('.')
-        f_name = file[:(f_loc if f_loc != -1 else len(file))]
-        f_type = file[((f_loc + 1) if f_loc != -1 else len(file)):]
+        if file[0:1] == '.': continue                         # 如果是隐藏文件，则不管他
+        tmp_path = c_path + '/' + file      # 当前要判断的文件的地址
+        f_loc = file.rfind('.')             # 在文件名中是否有 `.` ，用于截取
+        f_name = file[:(f_loc if f_loc != -1 else len(file))]           # 文件名
+        f_type = file[((f_loc + 1) if f_loc != -1 else len(file)):]     # 文件类型
         if f_type in ('lproj', 'bundle', 'framework', 'xcworkspace', '.a') or f_name in ('Podfile', 'Pods', '__temp_store_path'):   # 这些文件、目录下的图片不做统计
             continue
         if f_type == 'xcodeproj':
@@ -59,29 +58,28 @@ def file_classify(c_path, imgs, codes, ecpt_f):
 # img_path 图片地址
 # code     代码文件
 def img_exists_in_code(img_path, c_f):
-    if os.path.isfile(c_f):
-        img_full_name = img_path[img_path.rfind('/') + 1:]
-        cut_matches = re.match('(.+?)(@\\w+)?\\.(\\w+)', img_full_name)
+    if os.path.isfile(c_f):     # 如果当前文件存在才能继续执行
+        img_full_name = img_path[img_path.rfind('/') + 1:]  # 图片包含类型的名称
+        cut_matches = re.match('(.+?)(@\\w+)?\\.(\\w+)', img_full_name)     # 使用正则截取每一部分
         if cut_matches != None and len(cut_matches.groups()) == 3:
             img_scale_type = cut_matches.group(2) if cut_matches.group(2) != None else ''
             try:
                 with open(c_f, 'rb') as f:
-                    cod = re.sub('(/\\*([.\\s\\S]*?)\\*/)|(//.*)', '', f.read().decode('utf-8'))
-                    return re.search('"%s(%s)?(\\.%s)?"' % (cut_matches.group(1), cut_matches.group(2), cut_matches.group(3)), cod)
+                    cod = re.sub('(/\\*([.\\s\\S]*?)\\*/)|(//.*)', '', f.read().decode('utf-8'))    # 清除所有注释
+                    return re.search('"%s(%s)?(\\.%s)?"' % (cut_matches.group(1), cut_matches.group(2), cut_matches.group(3)), cod)     # 组装正则用来查找判断
             except Exception as e: print(e, c_f)
     return False
 
+# 根据选择一张一张的删除图片
+# 图片地址
 def remove_img(img):
-    if img[img.rfind('.') + 1:] == 'imageset':
-        store_file(img)
+    if img[img.rfind('.') + 1:] == 'imageset': store_file(img)
     elif len(xcodeproj) > 0 and os.path.isfile(img):
-        pth = xcodeproj + '/' + 'project.pbxproj'
+        pth = xcodeproj + '/' + 'project.pbxproj'   # 工程文件
         with open(pth, 'r') as f:
             lines = f.readlines()
             i_name = img[img.rfind('/') + 1:]
-            for line in lines:
-                if line.find(i_name) != -1:
-                    lines.remove(line)
+            lines = [line for line in f.readlines if line.find(i_name) != -1]
             store_file(img)
             replfile(pth, lines)
 
