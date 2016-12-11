@@ -18,7 +18,10 @@
 
 将XCode中的各个平台的SDK导出到目标目录，可以导出为markdown文件和头文件。
 
+使用
+
 python 脚本文件名 保存地址
+
 例：
 `python frameworkHeaders.py /Users/JyHu/Desktop/t`
 
