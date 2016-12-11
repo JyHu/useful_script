@@ -10,6 +10,11 @@ python unuse_img.py /Users/JyHu/Dropbox/Project/ios ThirdParts,Expression,GifFac
 import sys
 import os
 import re
+import shutil
+import getpass
+
+xcodeproj = ''
+tempStorePath = ''
 
 # 读取xassets管理的图片
 def assets_imgs(a_path):
@@ -30,17 +35,21 @@ def assets_imgs(a_path):
 def file_classify(c_path, imgs, codes, ecpt_f):
     files = os.listdir(c_path)
     for file in files:
-        tmp_path = c_path + '/' + file
-        f_name = file[:file.rfind('.')]
-        f_type = file[file.rfind('.') + 1:]
-        if f_type in ('xcworkspace', 'xcodeproj', 'lproj', 'bundle', 'framework') or f_name in ('Podfile', 'Pods'):   # 这些文件、目录下的图片不做统计
+        if file[0:1] == '.':                      # 如果是隐藏文件，则不管他
             continue
-        if f_type == 'xcassets':        # 是系统的Assets，只需要统计里面的图片即可。
+        tmp_path = c_path + '/' + file
+        f_loc = file.rfind('.')
+        f_name = file[:(f_loc if f_loc != -1 else len(file))]
+        f_type = file[((f_loc + 1) if f_loc != -1 else len(file)):]
+        if f_type in ('lproj', 'bundle', 'framework', 'xcworkspace', '.a') or f_name in ('Podfile', 'Pods', '__temp_store_path'):   # 这些文件、目录下的图片不做统计
+            continue
+        if f_type == 'xcodeproj':
+            global xcodeproj
+            xcodeproj = tmp_path
+        elif f_type == 'xcassets':        # 是系统的Assets，只需要统计里面的图片即可。
             imgs += assets_imgs(tmp_path)
         elif os.path.isdir(tmp_path) and file not in ecpt_f:                 # 如果是一个目录，则递归去寻找
             file_classify(tmp_path, imgs, codes, ecpt_f)
-        elif file[0:1] == '.':                      # 如果是隐藏文件，则不管他
-            continue
         elif f_type in ('png', 'jpg', 'jpeg', 'bmp', 'gif'):    # 如果是图片类型的，则直接添加
             imgs.append(tmp_path)
         elif f_type in ('m', 'c', 'h', 'mm', 'strings', 'strings'):               # 代码文件也需要保存，去掉plist文件的读取
@@ -59,15 +68,66 @@ def img_exists_in_code(img_path, c_f):
                 with open(c_f, 'rb') as f:
                     cod = re.sub('(/\\*([.\\s\\S]*?)\\*/)|(//.*)', '', f.read().decode('utf-8'))
                     return re.search('"%s(%s)?(\\.%s)?"' % (cut_matches.group(1), cut_matches.group(2), cut_matches.group(3)), cod)
-            except Exception as e:
-                print(e, c_f)
+            except Exception as e: print(e, c_f)
     return False
+
+def remove_img(img):
+    if img[img.rfind('.') + 1:] == 'imageset':
+        store_file(img)
+    elif len(xcodeproj) > 0 and os.path.isfile(img):
+        pth = xcodeproj + '/' + 'project.pbxproj'
+        with open(pth, 'r') as f:
+            lines = f.readlines()
+            i_name = img[img.rfind('/') + 1:]
+            for line in lines:
+                if line.find(i_name) != -1:
+                    lines.remove(line)
+            store_file(img)
+            replfile(pth, lines)
+
+def replfile(fpth, lines):
+    pth = fpth[:fpth.rfind('/')]
+    temp = pth + '/' +'___tmp_file'
+    with open(temp, 'a') as f:
+        for line in lines: f.write(line)
+    os.remove(fpth)
+    shutil.move(temp, fpth)
+
+def store_file(img):
+    try:
+        shutil.move(img, tempStorePath)
+        with open(tempStorePath + '/' + '__store_log.txt', 'a') as f:
+            f.write(img)
+            f.write('\n')
+    except Exception as e:
+        os.system('rm %s' % img)
+    print('移除无用图片成功  %s' % img)
+
+def remove_imgs(imgs):
+    if len(xcodeproj) > 0:
+        with open(xcodeproj + '/' + 'project.pbxproj', 'r') as f:
+            lines = f.readlines()
+            c_unuse_img = False
+            for img in imgs:
+                store_file(img)
+                if img[img.rfind('.') + 1:] == 'imageset': continue
+                i_name = img[img.rfind('/') + 1:]
+                for line in lines:
+                    if line.find(i_name) != -1:
+                        lines.remove(line)
+                        c_unuse_img = True
+            if c_unuse_img: replfile(xcodeproj + '/' + 'project.pbxproj', lines)
 
 # 程序的入口，检查图片是否被使用
 # prj     项目地址
 # ept_f   排除的文件夹
 def imgCheck(prj, ept_f):
     if prj == None or len(prj) == 0 or not os.path.isdir(prj): return
+
+    global tempStorePath
+    tempStorePath = prj + '/' + '__temp_store_path'
+    if not os.path.isdir(tempStorePath): os.mkdir(tempStorePath)
+
     imgs = []
     codes = []
     file_classify(prj, imgs, codes, ept_f)
@@ -82,14 +142,59 @@ def imgCheck(prj, ept_f):
         sys.stdout.write('\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b')
         sys.stdout.write('--->> 正在处理 %d/%d' % (t + 1, len(imgs)))
 
+    if len(unuse_imgs) == 0:
+        print('\n\n恭喜你，项目中没有无用的图片哦 ~ \n')
+        return
+
     print('\n\n--------------------------\n\n以下图片未在项目中找到用处：\n\n')
 
     for im in unuse_imgs: print('未使用   : ', im)
 
-    print('\n\n')
-    print('以上内容检查自代码文件中，仅供参考，请自行在项目中查找资源是否使用')
-    print('项目中图片共有:%d张' % len(imgs))
-    print('没有用过的图片有:%d张' % len(unuse_imgs))
+    if len(unuse_imgs) > 0:
+
+        print('''
+
+>>--------------------------------------------------------------
+>|
+>|    以上内容检查自代码文件中，仅供参考，请自行在项目中查找资源是否使用
+>|    项目中图片共有:%d张
+>|    没有用过的图片有:%d张
+>|
+>|
+>|    请选择操作方式：
+>|
+>|    888 - 全部清除
+>|    2   - 依次全部清除
+>|    其他 - 退出
+>|
+>>--------------------------------------------------------------
+
+            ''' % (len(imgs), len(unuse_imgs)))
+        cmd = input('>> : ')
+        if cmd == '888': remove_imgs(unuse_imgs)
+        elif cmd == '2':
+            for cur_img in unuse_imgs:
+                print('\n-------------------------------------------------------\n\n当前项：', cur_img)
+                cmd = input('-- > (y/Y删除)  : ')
+                if cmd == 'q': break
+                elif cmd == 'y' or cmd == 'Y':
+                    remove_img(cur_img)
+
+        if len(os.listdir(tempStorePath)) > 0:
+            try:
+                dpath = '/Users/%s/Desktop/UnuseImgCheck' % getpass.getuser()
+                rep = 1
+                mv_path = dpath
+                while os.path.isdir(mv_path):
+                    mv_path = dpath + str(rep)
+                    rep += 1
+                os.mkdir(mv_path)
+                shutil.move(tempStorePath, mv_path)
+                os.system('open %s' % mv_path)
+                print('\n移动缓存文件夹成功')
+            except Exception as e: print('移动失败 ', e)
+        else:
+            print('\n\n操作结束 ~ \n')
 
 
 if __name__ == '__main__':
