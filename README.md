@@ -12,7 +12,7 @@
 脚本可以清理项目中的无用的图片，并将清理掉的内容写到缓存起来，以备查看。
 测试了几个项目，效果还不错。
 
-[查看详细说明](./查找项目中废弃的图片/Note.md)
+[查看详细说明](https://github.com/JyHu/useful_script/blob/master/Scripts/查找项目中废弃的图片/Note.md)
 
 ## 导出XCode中的Framework
 
