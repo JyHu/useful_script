@@ -180,12 +180,16 @@ def imgCheck(prj, ept_f):
         print('>>--------------------------------------------------------------')
         print('\n')
 
-        cmd = input('>> : ')
+        cmd = ''
+        if sys.version > '3': cmd = input('>> : ')
+        else: cmd = raw_input('>> : ')
         if cmd == '888': remove_imgs(unuse_imgs)
         elif cmd == '2':
             for cur_img in unuse_imgs:
                 print('\n-------------------------------------------------------\n\n当前项：', cur_img)
-                cmd = input('-- > (y/Y删除)  : ')
+                cmd = ''
+                if sys.version > '3': cmd = input('-- > (y/Y删除)  : ')
+                else: cmd = raw_input('-- > (y/Y删除)  : ')
                 if cmd == 'q': break
                 elif cmd == 'y' or cmd == 'Y': remove_img(cur_img)
 
