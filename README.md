@@ -6,6 +6,14 @@
 
 以下脚本如有在使用过程中出现任何问题，均与本人无关。
 
+## [替换markdown文件中的图片到图床](https://github.com/JyHu/useful_script/tree/master/Scripts/md文件图片图床转换)
+
+在写markdown文件的时候，如果有很多的图片引入，大家想到的多的应该是围脖图床等各种网上在线的插件或者网站，有的有限制，有的还比较麻烦，反正作为一个码农，感觉不能更人性化一点就是太不友好了。
+
+所以在这用七牛做图床，python写脚本做了一个自动上传替换的脚本。
+
+**[查看详细说明](https://github.com/JyHu/useful_script/tree/master/Scripts/md文件图片图床转换/note.md)**，现在就试用。。。
+
 ## [查找项目中废弃的图片](https://github.com/JyHu/useful_script/tree/master/Scripts/查找项目中废弃的图片)
 
 主要是因为在开发的时候，有些图片放在XCode项目中，但是在版本迭代的时候，经常无法及时的删除无用的图片，所以，长时间的积累的话，肯定会造成项目的越来越臃肿。
