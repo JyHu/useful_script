@@ -39,7 +39,7 @@ from qiniu import Auth, put_file, etag
 
 ak = ''
 sk = ''
-domain = '' # 上传域名
+domain = 'xxxxxxxxxxx.bkt.clouddn.com' # 上传域名
 bucket = '' # 空间名称
 
 tinify.key = '' # 设置tinipng的key
@@ -87,13 +87,13 @@ def cached_img_url(img_loc_path):
     if img_url:
         try: remote_exists = urllib.request.urlopen(img_url).code == 200
         except Exception as e: 
-            print('网址不存在 ：', img_url)
+            print('#warning: 网址不存在 ：', img_url)
             remote_exists = False
     if not img_url or not remote_exists:     # 如果没有查到图片的网址，或者网址失效
         print('上传图片 ：', img_loc_path)
         img_url, uinfo = upload_file(img_loc_path)  # 接取上传后的图片信息
         if not img_url:     # 如果图片地址为空，则说明上传失败
-            print('上传失败')
+            print('#warning: 上传失败')
             conn.close()
             return None
         else:
@@ -122,20 +122,23 @@ def md_img_find(md_file):
                         if imghdr.what(loc_p):  # 如果是一个图片的话，才要上传，否则的话，不用管
                             if need_zip:
                                 o_img = loc_p + '.ori'  # 原始未压缩的图片
-                                if not os.path.isfile(o_img) or not imghdr.what(o_img):     # 如果没有的话，那就需要进行压缩处理
-                                    print('压缩图片 ：', loc_p) 
-                                    s_img = tinify.from_file(loc_p)
-                                    s_img.to_file(loc_p + '.z')
-                                    os.rename(loc_p, loc_p + '.ori')
-                                    os.rename(loc_p + '.z', loc_p)
+                                try:
+                                    if not os.path.isfile(o_img) or not imghdr.what(o_img):     # 如果没有的话，那就需要进行压缩处理
+                                        print('压缩图片 ：', loc_p) 
+                                        s_img = tinify.from_file(loc_p)
+                                        s_img.to_file(loc_p + '.z')
+                                        os.rename(loc_p, loc_p + '.ori')
+                                        os.rename(loc_p + '.z', loc_p)
+                                except Exception as e:
+                                    print('#warning: tinypng压缩出问题了，图片未压缩。')
                             file_url = cached_img_url(loc_p)    # 获取上传后的图片地址
                             if file_url:    # 在图片地址存在的情况下进行替换
                                 print('图片地址是 ： ', file_url)
                                 post = post.replace(match, file_url)    # 替换md文件中的地址
                         else:
-                            print('不是一个图片文件 ：', loc_p)
+                            print('#warning: 不是一个图片文件 ：', loc_p)
                             continue
-                    else: print('文件不存在 ：', loc_p)
+                    else: print('#warning: 文件不存在 ：', loc_p)
                 else: print('markdown文件中的图片用的是网址 ：', match)
     if post: open(md_file, 'w').write(post) #如果有内容的话，就直接覆盖写入当前的markdown文件
 

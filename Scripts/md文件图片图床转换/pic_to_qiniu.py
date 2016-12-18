@@ -29,10 +29,10 @@ from hashlib import md5
 
 ak = ''
 sk = ''
-domain = '' # 上传域名
+domain = 'xxxxxxxxx.bkt.clouddn.com' # 上传域名
 bucket = '' # 空间名称
 
-tinify.key = '' # 设置tinipng的key
+tinify.key = 'ml0JxuXHB1Z4Ar5BHYWAtaFWQzOfyOKI' # 设置tinipng的key
 
 q = Auth(ak, sk)    # 七牛认证
 
@@ -40,13 +40,16 @@ def upload(img, need_zip):
 	if os.path.exists(img) and os.path.isfile(img):
 		if imghdr.what(img):
 			if need_zip:
-				o_img = img + '.ori'
-				if not os.path.isfile(o_img) or not imghdr.what(o_img):     # 如果没有的话，那就需要进行压缩处理
-					print('压缩图片 ：', img) 
-					s_img = tinify.from_file(img)
-					s_img.to_file(img + '.z')
-					os.rename(img, img + '.ori')
-					os.rename(img + '.z', img)
+				try:
+					o_img = img + '.ori'
+					if not os.path.isfile(o_img) or not imghdr.what(o_img):     # 如果没有的话，那就需要进行压缩处理
+						print('压缩图片 ：', img) 
+						s_img = tinify.from_file(img)
+						s_img.to_file(img + '.z')
+						os.rename(img, img + '.ori')
+						os.rename(img + '.z', img)
+				except Exception as e:
+					print('图片压缩错误')
 			rstr = str(time.time())+''.join(random.sample('abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ', 12))
 			key = md5(rstr.encode('utf-8')).hexdigest()   # 上传到七牛后的图片名
 			mime_type = 'image/%s' % img[img.rfind('.') + 1:]
