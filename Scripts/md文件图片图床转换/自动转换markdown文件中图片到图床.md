@@ -7,9 +7,9 @@
 
 ### 环境
 
-依然使用的是还算了解一些的`Python3`，关于它，还是看下** [这里](http://www.auu.space/2016/10/13/升级Mac自带的python/#more)**，我这里使用的是Mac系统。
+依然使用的是还算了解一些的`Python3`，关于它，还是看下**[这里](http://www.auu.space/2016/10/13/升级Mac自带的python/#more)**，我这里使用的是Mac系统。
 
-其中还需要几个开源库，可以使用pip安装，pip获取方式可以根据** [官网的教程文档](https://pip.pypa.io/en/stable/installing/)**获取安装。
+其中还需要几个开源库，可以使用pip安装，pip获取方式可以根据**[官网的教程文档](https://pip.pypa.io/en/stable/installing/)**获取安装。
 
 ### 懒人看的
 
@@ -23,7 +23,7 @@ pip install --upgrade qiniu
 
 ### 存储
 
-在开始的时候，看过一些资料，都是用微博作为图床的比较多，没有上传限制、流量限制等，但是做起来可能相对要复杂一些，然后还有的人用的七牛，然后看了官方的文档还是很简单的，** [这是官方的开发文档](http://developer.qiniu.com/code/v7/sdk/python.html) **，免费的云存储空间和流量够个人使用了。
+在开始的时候，看过一些资料，都是用微博作为图床的比较多，没有上传限制、流量限制等，但是做起来可能相对要复杂一些，然后还有的人用的七牛，然后看了官方的文档还是很简单的，**[这是官方的开发文档](http://developer.qiniu.com/code/v7/sdk/python.html)**，免费的云存储空间和流量够个人使用了。
 
 申请好个人账号，然后找到以下几个参数：
 
@@ -33,7 +33,7 @@ pip install --upgrade qiniu
 
 ### 图片压缩
 
-由于七牛空间有限，为了节省空间，所以需要对图片做些压缩优化，这里使用的是`tinypng`做图片的压缩，**[官方的文档](https://tinypng.com/developers/reference/python) **。
+由于七牛空间有限，为了节省空间，所以需要对图片做些压缩优化，这里使用的是`tinypng`做图片的压缩，**[官方的文档](https://tinypng.com/developers/reference/python)**。
 
 随便找了个张图片压缩对比一下，还是很客观的：
 
