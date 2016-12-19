@@ -39,8 +39,8 @@ from qiniu import Auth, put_file, etag
 
 ak = ''
 sk = ''
-domain = 'xxxxxxxxxxx.bkt.clouddn.com' # 上传域名
-bucket = '' # 空间名称
+domain = 'xxxxxx.bkt.clouddn.com' # 上传域名
+bucket = 'xxxxxx-pic-bed' # 空间名称
 
 tinify.key = '' # 设置tinipng的key
 
@@ -111,36 +111,39 @@ def md_img_find(md_file):
     post = None  # 用来存放markdown文件内容
     with open(md_file, 'r') as f:
         post = f.read()
-        matches = re.compile('!\\[.*?\\]\\((.*?)\\)').findall(post)     # 匹配md文件中的图片
+        matches = re.compile('!\\[.*?\\]\\((.*?)\\)|<img.*?src=[\'\"](.*?)[\'\"].*?>').findall(post)     # 匹配md文件中的图片
         if matches and len(matches) > 0:
-            for match in matches:   # 遍历去修改每个图片
-                if not re.match('((http(s?))|(ftp))://.*', match):  # 判断是不是已经是一个图片的网址
-                    loc_p = match
-                    if not os.path.exists(loc_p) or not os.path.isfile(loc_p):  # 如果文件不存在，则可能这是用的一个相对路径，需要转成绝对路径
-                        loc_p = md_file[:md_file.rfind('/')+1] + match
-                    if os.path.exists(loc_p) and os.path.isfile(loc_p):
-                        if imghdr.what(loc_p):  # 如果是一个图片的话，才要上传，否则的话，不用管
-                            if need_zip:
-                                o_img = loc_p + '.ori'  # 原始未压缩的图片
-                                try:
-                                    if not os.path.isfile(o_img) or not imghdr.what(o_img):     # 如果没有的话，那就需要进行压缩处理
-                                        print('压缩图片 ：', loc_p) 
-                                        s_img = tinify.from_file(loc_p)
-                                        s_img.to_file(loc_p + '.z')
-                                        os.rename(loc_p, loc_p + '.ori')
-                                        os.rename(loc_p + '.z', loc_p)
-                                except Exception as e:
-                                    print('#warning: tinypng压缩出问题了，图片未压缩。')
-                            file_url = cached_img_url(loc_p)    # 获取上传后的图片地址
-                            if file_url:    # 在图片地址存在的情况下进行替换
-                                print('图片地址是 ： ', file_url)
-                                post = post.replace(match, file_url)    # 替换md文件中的地址
-                        else:
-                            print('#warning: 不是一个图片文件 ：', loc_p)
-                            continue
-                    else: print('#warning: 文件不存在 ：', loc_p)
-                else: print('markdown文件中的图片用的是网址 ：', match)
-    if post: open(md_file, 'w').write(post) #如果有内容的话，就直接覆盖写入当前的markdown文件
+            for sub_match in matches:       # 正则里有个或，所以有分组，需要单独遍历去修改   
+                for match in sub_match:     # 遍历去修改每个图片
+                    if match and len(match) > 0:
+                        print("match pic : ", match)
+                        if not re.match('((http(s?))|(ftp))://.*', match):  # 判断是不是已经是一个图片的网址
+                            loc_p = match
+                            if not os.path.exists(loc_p) or not os.path.isfile(loc_p):  # 如果文件不存在，则可能这是用的一个相对路径，需要转成绝对路径
+                                loc_p = md_file[:md_file.rfind('/')+1] + match
+                            if os.path.exists(loc_p) and os.path.isfile(loc_p):
+                                if imghdr.what(loc_p):  # 如果是一个图片的话，才要上传，否则的话，不用管
+                                    if need_zip:
+                                        o_img = loc_p + '.ori'  # 原始未压缩的图片
+                                        try:
+                                            if not os.path.isfile(o_img) or not imghdr.what(o_img):     # 如果没有的话，那就需要进行压缩处理
+                                                print('压缩图片 ：', loc_p) 
+                                                s_img = tinify.from_file(loc_p)
+                                                s_img.to_file(loc_p + '.z')
+                                                os.rename(loc_p, loc_p + '.ori')
+                                                os.rename(loc_p + '.z', loc_p)
+                                        except Exception as e:
+                                            print('#warning: tinypng压缩出问题了，图片未压缩。')
+                                    file_url = cached_img_url(loc_p)    # 获取上传后的图片地址
+                                    if file_url:    # 在图片地址存在的情况下进行替换
+                                        print('图片地址是 ： ', file_url)
+                                        post = post.replace(match, file_url)    # 替换md文件中的地址
+                                else:
+                                    print('#warning: 不是一个图片文件 ：', loc_p)
+                                    continue
+                            else: print('#warning: 文件不存在 ：', loc_p)
+                        else: print('markdown文件中的图片用的是网址 ：', match)
+            if post: open(md_file, 'w').write(post) #如果有内容的话，就直接覆盖写入当前的markdown文件
 
 def find_md(folder):
     '''

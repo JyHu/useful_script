@@ -32,7 +32,7 @@ sk = ''
 domain = 'xxxxxxxxx.bkt.clouddn.com' # 上传域名
 bucket = '' # 空间名称
 
-tinify.key = 'ml0JxuXHB1Z4Ar5BHYWAtaFWQzOfyOKI' # 设置tinipng的key
+tinify.key = '' # 设置tinipng的key
 
 q = Auth(ak, sk)    # 七牛认证
 
